@@ -7,18 +7,7 @@ dotenv.config({
     path:'./env'
 })
 
-
-// We are connecting to the database in the index.js file. This is a better practice than doing it in the db folder.
-connectDB() // Whenever we use async function, it always returns a promise. So, we have to use .then() and .catch()
-.then(()=>{
-    app.listen(process.env.PORT || 8000, ()=>{
-        console.log(`Server is running : ${process.env.PORT}`)
-    })
-})
-.catch((error)=>{
-    console.log("MongoDB Connection Error",error)
-
-})
+connectDB()
 
 
 
