@@ -12,7 +12,7 @@ app.use(cors({
 
 app.use(express.json({limit:"16kb"})) // Here we limit the download space.
 app.use(express.urlencoded({extended: true, limit : "16kb"}))// Here we encode the URL
-app.use(express.static("public"))
+app.use(express.static("public"))// Sometimes we want to store assets (image, pdf) in the public folder
 app.use(cookieParser()) //For operations in cookies in the browser of the user.
 
 
