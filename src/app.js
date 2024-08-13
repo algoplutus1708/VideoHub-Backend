@@ -15,6 +15,13 @@ app.use(express.urlencoded({extended: true, limit : "16kb"}))// Here we encode t
 app.use(express.static("public"))// Sometimes we want to store assets (image, pdf) in the public folder
 app.use(cookieParser()) //For operations in cookies in the browser of the user.
 
+//Mostly routes and controller are imported and written in the app.js file only
 
+//Routes Import
+import userRouter from "./routes/user.routes.js"
+
+//Routes Declaration
+//We can't use app.get() here as we are exporting router here. We have to use middleware here.
+app.use("/api/v1/users", userRouter)
 
 export {app}
