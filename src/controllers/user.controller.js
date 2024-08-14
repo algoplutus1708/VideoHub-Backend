@@ -4,6 +4,23 @@ import {User} from "../models/user.model.js"
 import {uploadOnCloudinary} from "../utils/cloudinary.js"
 import {ApiResponse} from "../utils/apiResponse.js"
 
+// Basically we are making a method to generate Access and Refresh token.
+const generateAccessAndRefreshToken = async(useId)=>{
+    try{
+        const user = await User.findById(useId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken // Here we are adding the refreshToken inside the user database.
+        await user.save({validateBeforeSave : false}) // We are saving these. It is a database operation, so it takes time. Thats why we are using await keyword.
+
+        return {accessToken, refreshToken}
+    }catch(error){
+        throw new ApiError(500,"Something went wrong while generating refresh and access token")
+    }
+}
+
+
 const registerUser = asyncHandler(async (req,res)=>{
     // Steps for registering User
     // Get details from frontend
@@ -18,13 +35,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     // return res
 
 
-    const {fullName, email, username, password}=req./* In the provided JavaScript code snippet,
-    `req.body` is used to access the data sent in
-    the body of the HTTP request. When a client
-    sends a POST or PUT request with data, that data
-    is typically included in the body of the
-    request. */
-    body // In this step we are gathering data from the frontend, if the data is from form or json then we can us req.body(), but if its URL then we have to consider other case which we will discuss later.
+    const {fullName, email, username, password}=req.body // In this step we are gathering data from the frontend, if the data is from form or json then we can us req.body(), but if its URL then we have to consider other case which we will discuss later.
     // Checking Email - console.log("email:",email)
 
     // Now we are checking if any field is empty or not
@@ -97,8 +108,91 @@ const registerUser = asyncHandler(async (req,res)=>{
     return res.status(201).json(
         new ApiResponse(200, createdUser,"User Registered Successfully")
     )
+})
 
+
+const loginUser = asyncHandler( async (req,res)=>{
+    // Take data from req.body
+    // Username or email
+    // Find the user
+    // Password Check
+    // Access and refresh token
+    // Send Cookies for jwts
+
+    // Take data from req.body
+    const {email,username,password} = req.body
+
+    if(!username && !email){
+        throw new ApiError(400,"Username or email is required")
+    }
+    
+    // Here we are trying to find the user on the basis of its username or email, we want any of them.
+    const user = User.findOne({ 
+        $or : [{username}, {email}]
+    })
+
+    if (!user){
+        throw new ApiError(404,"User doesn't exist")
+    }
+
+    // Password Check
+    // Important thing - We are applying method not on "User"- It is thing thing imported from the module of the model. We will be using "user" which we have taken an instance from req.body
+    const isPasswordValid = await user.isPassowrdCorrect(password)
+
+    if (!isPasswordValid){
+        throw new ApiError(401,"Invalid User Credentials")
+    }
+
+    //Generate refresh and access token
+    const {refreshToken, accessToken} = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select( //    This is an optional step.
+        "-password -refreshToken"
+    )
+
+    //Send Cookies for jwts
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res.status(200).cookie("accessToken",accessToken,options).cookie("refreshToken",refreshToken)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user:loggedInUser,accessToken,refreshToken
+            },
+            "User Logged In Successfully"
+        )
+    )
 
 })
 
-export {registerUser}
+const logoutUser = asyncHandler(async(req,res)=>{
+    await User.findByIdAndUpdate(
+        req.user._id,
+        {
+            $set: {
+                refreshToken: undefined
+            }
+        },
+        {
+            new: true
+        }
+    )
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+    return res
+    .status(200)
+    .clearCookie("accessToken",options)
+    .clearCookie("refreshToken",options)
+    .json(new ApiResponse(200, {}, "User Logged Out Successfully"))
+})
+
+export {registerUser,
+    loginUser,
+    logoutUser
+}
