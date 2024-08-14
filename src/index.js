@@ -4,10 +4,10 @@ import {app} from "./app.js"
 
 //require('dotenv').config({path:'./env'})
 import dotenv from "dotenv" // This is an experimental feature so we have to config the package.json file. we have to config the 'dev' script in package.json file.
-// dotenv.config({  //5th and 6th line are important for configuring dotenv using module type.
-//     path:'./env'
-// })
-dotenv.config();
+dotenv.config({  //5th and 6th line are important for configuring dotenv using module type.
+    path:'./.env'
+})
+// dotenv.config();
 
 connectDB()
 .then(()=>{

@@ -18,8 +18,14 @@ const registerUser = asyncHandler(async (req,res)=>{
     // return res
 
 
-    const {fullName, email, username, password}=req.body // In this step we are gathering data from the frontend, if the data is from form or json then we can us req.body(), but if its URL then we have to consider other case which we will discuss later.
-    console.log("email:",email)
+    const {fullName, email, username, password}=req./* In the provided JavaScript code snippet,
+    `req.body` is used to access the data sent in
+    the body of the HTTP request. When a client
+    sends a POST or PUT request with data, that data
+    is typically included in the body of the
+    request. */
+    body // In this step we are gathering data from the frontend, if the data is from form or json then we can us req.body(), but if its URL then we have to consider other case which we will discuss later.
+    // Checking Email - console.log("email:",email)
 
     // Now we are checking if any field is empty or not
     if(
@@ -30,7 +36,7 @@ const registerUser = asyncHandler(async (req,res)=>{
     }
 
     //Checking if user already exits or not
-    const existedUser = User.findOne({
+    const existedUser = await User.findOne({
         $or: [{username},{email}]
     })
     if(existedUser){
@@ -40,7 +46,18 @@ const registerUser = asyncHandler(async (req,res)=>{
     // Check for images
     // Multer gives us acces to req.files
     const avatarLocalPath = req.files?.avatar[0]?.path // This [0] means we are taking the first property. Multer gives many property of the file if its .png or .jpg, so we only want its first property.
-    const coverImageLocalPath = req.files?.coverImage[0]?.path
+    
+    // In this way of extracting cover, we encounter an error if the user doesn't upload a cover image
+    // const coverImageLocalPath = req.files?.coverImage[0]?.path
+
+    let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage)  && req.files.coverImage.length>0){
+        coverImageLocalPath = req.files?.coverImage[0]?.path
+    }
+
+    /*console.log("Start")
+    console.log(req.files)
+    console.log("End")*/
 
     if(!avatarLocalPath){
         throw new ApiError(400,"Avatar not Uploaded")
