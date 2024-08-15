@@ -56,9 +56,12 @@ userSchema.pre("save", async function(next){// These functions takes time, thats
     next()
 })// We are not using arrow function as there is no reference for this(keyword).
 
-userSchema.methods.isPasswordCorrect= async function (password) { // Here we are checking if the password is correct. We are making methods using middlewares.
+// Here we are checking if the password is correct. We are making methods using middlewares.
+userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)
 }
+
+
 
 userSchema.methods.generateAccessToken= function(){
     return jwt.sign(
@@ -87,4 +90,5 @@ userSchema.methods.generateRefreshToken= function(){
     )
 }
 
-export const User = mongoose.model("User",userSchema)
+
+export const User = mongoose.model("User", userSchema)

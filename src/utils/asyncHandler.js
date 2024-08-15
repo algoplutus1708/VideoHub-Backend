@@ -2,16 +2,16 @@
 //There are actually two methods.
 
 // Method 1
-const asyncHandler=(requestHandler) =>{
-    return (req,res,next)=>{
-        Promise.resolve(requestHandler(req,res,next)).catch((err) => next(err))
+const asyncHandler = (requestHandler) => {
+    return (req, res, next) => {
+        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err))
     }
 }
 
 
+export { asyncHandler }
 
 
-export {asyncHandler}
 
 // const asyncHandler = () => {}
 // const asyncHandler = (func) => () => {}
